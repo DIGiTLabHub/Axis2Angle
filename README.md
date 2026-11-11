@@ -13,7 +13,7 @@ University of Missouri–Kansas City, United States<br>
 
 ## Overview
 
-Official implementation of **Axis2Angle**. We compare direct angle regression with anatomical-axis prediction using six frozen encoders, and separately evaluate axis recovery, measurement utility, and reference-axis substitution.
+Official implementation of **Axis2Angle**, a six-encoder study of anatomical-axis recovery, angle measurement, and reference-axis substitution.
 
 <p align="center">
   <img src="assets/framework-layout.png" width="100%" alt="Axis2Angle framework">
@@ -69,12 +69,14 @@ python scripts/benchmarks/prepare_split.py
 
 ### Training and Evaluation
 
+Example with BiomedCLIP:
+
 ```bash
 # M-mask: frozen feature extraction and axis-mask training
-python scripts/benchmarks/hvangle_frozen_spatial_benchmark.py --run
+python scripts/benchmarks/hvangle_frozen_spatial_benchmark.py --models biomedclip --run
 
 # G-dir and A-dir: spatial direct regression and auxiliary mask supervision
-python scripts/benchmarks/hvangle_dense_controls_benchmark.py --run
+python scripts/benchmarks/hvangle_dense_controls_benchmark.py --models biomedclip --run
 ```
 
 See [training and evaluation](docs/experiments.md) for all six encoders, P-dir, D-dir, H-end, paired comparisons, and reference-axis substitution.

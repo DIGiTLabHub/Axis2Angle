@@ -1,42 +1,58 @@
-# Training and evaluation
+# Training and Evaluation
 
-Run commands from the repository root after [data preparation](data.md). CUDA is the default; `--device cpu` selects CPU explicitly. Each route searches the same three learning-rate/weight-decay candidates using validation data, with seeds 17/42/73, batch size 16, at most 60 epochs, and patience 10.
+Complete [data preparation](data.md) first. Run commands from the repository root. CUDA is the default; use `--device cpu` for CPU execution.
 
-## M-mask and feature extraction
+## 1. M-mask and Feature Extraction
 
 ```bash
-python scripts/benchmarks/hvangle_frozen_spatial_benchmark.py --audit-only
+# Five medical encoders
 python scripts/benchmarks/hvangle_frozen_spatial_benchmark.py --run
+
+# ImageNet-RN50
 python scripts/benchmarks/hvangle_frozen_spatial_benchmark.py \
   --config scripts/benchmarks/hvangle_imagenet_config.json \
-  --output outputs/benchmarks/controlled_cross_model_v2/medical/hvangle_spatial_imagenet_rn50 --run
+  --output outputs/benchmarks/controlled_cross_model_v2/medical/hvangle_spatial_imagenet_rn50 \
+  --run
 ```
 
-`--models biomedclip` selects one encoder. `--extract-only` generates pooled/dense feature caches without fitting a head. The five medical encoders and ImageNet use separate output roots, matching the downstream configurations.
+These commands generate pooled features, spatial features, mask targets, and M-mask predictions. Both output roots are required before running the default six-encoder comparisons below.
 
-M-mask uses weighted BCE + soft Dice (0.5 each), selects checkpoints by validation case-macro Dice, and fits PCA directions after mapping masks back to original image coordinates. Mask threshold is 0.5; fewer than five positive pixels triggers the top-5%-probability, fourth-power-weighted PCA fallback. Positive class weights use training masks only. Mask-loss sigmoid and reductions accumulate in float32 under AMP to prevent float16 overflow at batch size 16. This corrects the historical M-mask training implementation; retraining may differ from the paper checkpoints. The reported result table and evaluation of saved predictions are unchanged.
+Use `--models biomedclip` to select one encoder, `--audit-only` to check the data and targets, or `--extract-only` to generate features without training a head.
 
-## Direct and alternative readouts
+## 2. Additional Readouts
 
 ```bash
-# G-dir: spatial-grid direct regression; A-dir: direct regression with auxiliary masks.
+# G-dir and A-dir
 python scripts/benchmarks/hvangle_dense_controls_benchmark.py --run
 
-# D-dir: upsampling decoder followed by pooling and angle regression.
+# D-dir
 python scripts/benchmarks/hvangle_dense_direct_benchmark.py --run
 
-# P-dir: pooled feature vector and MLP.
+# P-dir
 python scripts/benchmarks/hvangle_pooled_angle_replay.py --run
 
-# H-end: six endpoint heatmaps and the fixed angle protocol.
+# H-end
 python scripts/benchmarks/hvangle_dense_heatmap_benchmark.py --run
 ```
 
-G-dir, D-dir, and A-dir use Huber loss with δ = 5° and validation joint HVA/IMA MAE for selection. A-dir adds the fixed-weight auxiliary mask loss. P-dir uses the same angle loss without AMP or gradient clipping. H-end uses unordered endpoint supervision and validation angle MAE. Encoders are never fine-tuned. Direct and mask routes retain their distinct training objectives and checkpoint criteria from the paper.
+| Readout | Input and prediction | Checkpoint selection |
+|:--|:--|:--|
+| M-mask | Spatial features → three masks → PCA axes → angles | Validation case-macro Dice; loss breaks ties |
+| G-dir | Spatial-grid convolutions → angles | Validation joint angle MAE |
+| D-dir | Upsampling decoder → spatial pooling → angles | Validation joint angle MAE |
+| A-dir | D-dir with auxiliary mask supervision | Validation joint angle MAE |
+| P-dir | Pooled features → MLP → angles | Validation joint angle MAE |
+| H-end | Six unordered endpoint heatmaps → axes → angles | Validation joint angle MAE |
 
-The dense scripts also support `--audit-only`, `--smoke-test-heads`, and `--models biomedclip`. Their input audits require prepared data and feature caches. Selected checkpoints and predictions are written under each route's configured output directory.
+All routes use seeds 17/42/73, batch size 16, at most 60 epochs, patience 10, and three AdamW learning-rate/weight-decay candidates. Direct heads use Huber loss with δ = 5°. M-mask uses weighted BCE and soft Dice (0.5 each); A-dir adds this mask loss with weight 1. P-dir uses neither AMP nor gradient clipping. H-end uses endpoint-order-invariant Gaussian cross-entropy.
 
-## RQ1–RQ3 analysis
+Mask threshold is 0.5. PCA uses original image coordinates; fewer than five positive pixels triggers the top-5%-probability fallback with fourth-power weights. Class weights use training masks only.
+
+**Numerical precision:** Mask-loss sigmoid and reductions use float32 under AMP to avoid float16 overflow. This fixes the historical M-mask implementation, so retraining may differ from the paper checkpoints. Evaluation of saved predictions is unchanged.
+
+G-dir/A-dir, D-dir, and H-end also support `--audit-only` and `--smoke-test-heads` after feature preparation. All training scripts accept `--models biomedclip` for a single-encoder run. Checkpoints and predictions are saved under the configured output directories.
+
+## 3. Evaluation
 
 ```bash
 python scripts/benchmarks/evaluate.py \
@@ -46,15 +62,22 @@ python scripts/benchmarks/evaluate.py \
   --output outputs/evaluation
 ```
 
-For control tables, the evaluator selects `grid_direct` for G-dir and `aux_mask` for A-dir automatically. Concatenate per-model/seed tables if supplying selected-run CSVs instead. Every `--direct ROUTE=CSV` must contain exactly one prediction per test image and seed for every evaluated encoder, with the reference angle and patient columns emitted by the training scripts. Duplicate rows, missing images, or inconsistent references are rejected. Repeat `--direct` for additional routes.
+Repeat `--direct ROUTE=CSV` for other readouts. Control tables are filtered automatically: G-dir selects `grid_direct`, and A-dir selects `aux_mask`. Each supplied table must cover every evaluated encoder, test image, and seed exactly once. Concatenate per-run prediction CSVs if needed. Missing or duplicate rows, inconsistent references, and non-finite predictions are rejected.
 
-Outputs contain axis recovery, angle MAE, paired route contrasts, and one-axis reference substitutions. Contrasts average absolute-error differences across seeds per image, then use 5,000 patient-cluster bootstrap draws, seed 20260826, numeric patient ordering, and image-weighted cluster resampling. They report ordinary 95% and Bonferroni-adjusted intervals for a 12-comparison family (six encoders × two angles) per comparator. Positive `M-mask − direct` differences favor direct regression. Reference-substitution gains are exploratory, with positive values indicating lower error after replacement; they are not deployable predictions.
+| Output | Contents |
+|:--|:--|
+| `recovery.csv` | Per-axis and macro axis MAE |
+| `measurement.csv` | Angle MAE and sample SD across seeds |
+| `contrasts.csv` | Paired M-mask − direct differences and confidence intervals |
+| `substitution.csv` | One-axis reference-substitution gains and exploratory intervals |
 
-## Code checks
+Contrasts average per-image absolute-error differences across seeds before patient-cluster bootstrap resampling: 5,000 draws, seed 20260826, numeric patient ordering, and image-weighted cluster means. Intervals are ordinary 95% and Bonferroni-adjusted for 12 comparisons per comparator (six encoders × two angles). Positive differences favor direct regression. Positive substitution gains indicate reduced error after reference replacement; substitution is a diagnostic requiring reference annotations.
+
+## Tests
 
 ```bash
 pip install pytest
 pytest -q
 ```
 
-Tests exercise head sizes, geometry conventions, unordered endpoint loss, and patient-cluster resampling. They do not replace the full six-encoder training experiment.
+Tests cover geometry, parameter counts, half-precision loss stability, data loading, prediction validation, patient-cluster resampling, and a small training/checkpoint round trip for each readout. Full six-encoder retraining is not part of the test suite.
