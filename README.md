@@ -1,27 +1,31 @@
 <div align="center">
 
-# Axis2Angle
+<h1>Does Predicting Anatomical Axes Improve Foot Angle Measurement?<br><sub>Recovery, Measurement Utility, and Reference-Axis Substitution</sub></h1>
 
-### Does Predicting Anatomical Axes Improve Foot Angle Measurement?<br>Recovery, Measurement Utility, and Reference-Axis Substitution
-
-**Accepted at [WACVW (LVR) 2027](https://chenliu-1996.github.io/LVR-WACV2027/)**
-
-Hongcheng Jiang · Cheng Han\* · ZhiQiang Chen · Dianxiang Xu
+**Hongcheng Jiang &nbsp; Cheng Han\* &nbsp; ZhiQiang Chen &nbsp; Dianxiang Xu**
 
 University of Missouri–Kansas City, United States<br>
-\*Corresponding author
+<sup>*</sup>Corresponding author
 
-[Results](#results) · [Installation](#installation) · [Data](docs/data.md) · [Training and evaluation](docs/experiments.md) · [Citation](#citation)
+**[WACVW (LVR) 2027](https://chenliu-1996.github.io/LVR-WACV2027/)**
+
+[**Overview**](#overview) · [**Results**](#main-results) · [**Getting Started**](#getting-started) · [**Citation**](#citation)
 
 </div>
 
-<img src="assets/framework-layout.png" width="100%" alt="Axis2Angle experimental design">
+## Overview
 
-**Figure 1. Recovery, measurement utility, and reference-axis substitution.** The same frozen spatial features feed either a direct angle regressor or a mask decoder. PCA extracts axes from the predicted masks, and the fixed clinical protocol computes HVA and IMA. The three evaluations separately assess axis recovery, measurement accuracy, and the effect of replacing a predicted axis with its reference.
+Official implementation of **Axis2Angle**. We compare direct angle regression with anatomical-axis prediction using six frozen encoders, and separately evaluate axis recovery, measurement utility, and reference-axis substitution.
 
-## Results
+<p align="center">
+  <img src="assets/framework-layout.png" width="100%" alt="Axis2Angle framework">
+</p>
 
-HVAngleEst, patient-disjoint test split: 176 images from 133 patients. MAE in degrees, mean ± sample SD across seeds 17, 42, and 73. **G-dir** directly regresses angles from the spatial grid; **M-mask** predicts axis masks and applies the angle protocol.
+**Figure 1.** Both routes use the same frozen spatial features. The direct head predicts HVA and IMA; the mask head exposes PH1/M1/M2 axes through PCA and applies the fixed measurement protocol. RQ1 evaluates axis recovery, RQ2 compares angle accuracy, and RQ3 substitutes reference axes to isolate their effects.
+
+## Main Results
+
+**HVAngleEst:** 176 test images from 133 patients, patient-disjoint split. MAE (°), mean ± sample SD over three seeds. **G-dir:** spatial direct regression. **M-mask:** axis masks followed by the fixed angle protocol.
 
 | Frozen encoder | Axis MAE | G-dir HVA | M-mask HVA | G-dir IMA | M-mask IMA |
 |:--|--:|--:|--:|--:|--:|
@@ -32,26 +36,50 @@ HVAngleEst, patient-disjoint test split: 176 images from 133 patients. MAE in de
 | DAX-RN50-vA | 6.779 ± 0.409 | 7.992 ± 0.090 | 10.302 ± 0.536 | 2.934 ± 0.083 | 5.709 ± 0.925 |
 | ImageNet-RN50 | 4.468 ± 0.292 | 6.052 ± 0.265 | 6.192 ± 0.079 | 2.811 ± 0.149 | 3.665 ± 0.539 |
 
-Accurate axis recovery does not establish better angle measurement: multiplicity-adjusted intervals support no HVA improvement over G-dir and higher IMA error for four of six encoders.
+Axis recovery and angle accuracy must be evaluated separately: adjusted intervals support no HVA improvement over G-dir and higher IMA error for four of six encoders.
 
 <details>
-<summary>Reference-axis substitution</summary>
+<summary><b>Reference-axis substitution</b></summary>
 
-<img src="assets/reference_axis_gains.png" width="100%" alt="Reference-axis substitution results from the paper">
+<p align="center">
+  <img src="assets/reference_axis_gains.png" width="100%" alt="Reference-axis substitution results">
+</p>
 
-**Reference-axis substitution (paper figure).** Replacing one predicted direction with its reference changes the angle error without retraining. Replacing PH1 lowers MedImageInsight HVA MAE by 45.0%; the shared M1 axis affects HVA and IMA differently. These substitutions are diagnostic and use reference annotations.
+**Paper figure.** Replacing MedImageInsight's predicted PH1 axis with its reference lowers HVA MAE by 45.0%. The shared M1 axis affects HVA and IMA differently. Substitution uses reference annotations and serves as a diagnostic.
 
 </details>
 
-## Installation
+## Getting Started
 
-Python 3.11 and PyTorch 2.4. Install encoder-specific source packages as described in [Data](docs/data.md).
+### Installation
+
+Python 3.11 · PyTorch 2.4
 
 ```bash
+git clone https://github.com/DIGiTLabHub/Axis2Angle.git
+cd Axis2Angle
 pip install -r requirements.txt
 ```
 
-Follow [data preparation](docs/data.md), then [training and evaluation](docs/experiments.md) for M-mask, G-dir, P-dir, D-dir, A-dir, and H-end.
+### Data Preparation
+
+Follow [data and encoder setup](docs/data.md) to obtain HVAngleEst and the pretrained encoders, then recreate the patient-disjoint split:
+
+```bash
+python scripts/benchmarks/prepare_split.py
+```
+
+### Training and Evaluation
+
+```bash
+# M-mask: frozen feature extraction and axis-mask training
+python scripts/benchmarks/hvangle_frozen_spatial_benchmark.py --run
+
+# G-dir and A-dir: spatial direct regression and auxiliary mask supervision
+python scripts/benchmarks/hvangle_dense_controls_benchmark.py --run
+```
+
+See [training and evaluation](docs/experiments.md) for all six encoders, P-dir, D-dir, H-end, paired comparisons, and reference-axis substitution.
 
 ## Citation
 
