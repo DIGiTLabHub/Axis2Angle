@@ -7,8 +7,6 @@
 University of Missouri–Kansas City, United States<br>
 <sup>*</sup>Corresponding author
 
-**[WACVW (LVR) 2027](https://chenliu-1996.github.io/LVR-WACV2027/)**
-
 [**Overview**](#overview) · [**Results**](#main-results) · [**Getting Started**](#getting-started) · [**Citation**](#citation)
 
 </div>
