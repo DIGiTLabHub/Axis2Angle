@@ -4,6 +4,8 @@
 
 ### Does Predicting Anatomical Axes Improve Foot Angle Measurement?<br>Recovery, Measurement Utility, and Reference-Axis Substitution
 
+**Accepted at [WACVW (LVR) 2027](https://chenliu-1996.github.io/LVR-WACV2027/)**
+
 Hongcheng Jiang · Cheng Han\* · ZhiQiang Chen · Dianxiang Xu
 
 University of Missouri–Kansas City, United States<br>
@@ -54,9 +56,11 @@ Follow [data preparation](docs/data.md), then [training and evaluation](docs/exp
 ## Citation
 
 ```bibtex
-@misc{jiang_axis2angle,
+@inproceedings{jiang2027axis2angle,
   title={Does Predicting Anatomical Axes Improve Foot Angle Measurement? Recovery, Measurement Utility, and Reference-Axis Substitution},
   author={Jiang, Hongcheng and Han, Cheng and Chen, ZhiQiang and Xu, Dianxiang},
-  howpublished={\url{https://github.com/DIGiTLabHub/Axis2Angle}}
+  booktitle={WACV Workshop on Latent Visual Reasoning (LVR)},
+  year={2027},
+  url={https://github.com/DIGiTLabHub/Axis2Angle}
 }
 ```
