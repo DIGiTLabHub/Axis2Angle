@@ -1,0 +1,122 @@
+{
+  "protocol_version": "hvangle-frozen-spatial-v2",
+  "angle_result_manifest": "outputs/benchmarks/controlled_cross_model_v2/medical/hvangle/hvangle_results.json",
+  "image_size": 224,
+  "batch_size": 16,
+  "num_workers": 4,
+  "amp": true,
+  "max_epochs": 60,
+  "patience": 10,
+  "seeds": [
+    17,
+    42,
+    73
+  ],
+  "search_space": [
+    {
+      "lr": 0.0001,
+      "weight_decay": 0.0001
+    },
+    {
+      "lr": 0.0003,
+      "weight_decay": 0.0001
+    },
+    {
+      "lr": 0.0001,
+      "weight_decay": 0.001
+    }
+  ],
+  "lines": {
+    "canonical_line_width_px": 3.0,
+    "canonical_feature_grid": 14,
+    "projection_channels": 256,
+    "decoder_channels": [
+      128,
+      64,
+      32,
+      16
+    ],
+    "bce_loss_weight": 0.5,
+    "soft_dice_loss_weight": 0.5,
+    "mask_threshold": 0.5,
+    "axis_probability_power": 4.0,
+    "axis_probability_quantile": 0.95,
+    "axis_fit": "hard_mask_first_with_soft_probability_fallback",
+    "minimum_hard_axis_pixels": 5,
+    "selection_metric": "validation_case_macro_dice"
+  },
+  "models": {
+    "biomedclip": {
+      "display_name": "BiomedCLIP",
+      "family": "biomedclip",
+      "pooled_dim": 512,
+      "dense_channels": 768,
+      "dense_grid": [
+        14,
+        14
+      ],
+      "checkpoint": "outputs/model_cache/huggingface/hub/models--microsoft--BiomedCLIP-PubMedBERT_256-vit_base_patch16_224/blobs/52cc993c5c5ff962bd0c60931874bc001e7e9b41666a385530f4a036294576be",
+      "checkpoint_sha256": "52cc993c5c5ff962bd0c60931874bc001e7e9b41666a385530f4a036294576be",
+      "model_config": "outputs/model_cache/huggingface/hub/models--microsoft--BiomedCLIP-PubMedBERT_256-vit_base_patch16_224/snapshots/9f341de24bfb00180f1b847274256e9b65a3a32e/open_clip_config.json",
+      "model_config_sha256": "9a41f334a8c444678772c0ebb9ab854c97ab350bced3a17b803e258d39c23dc0",
+      "dense_interface": "final 14x14 ViT patch-token grid after removal of the prefix token"
+    },
+    "medimageinsight": {
+      "display_name": "MedImageInsight",
+      "line_display_name": "MedImageInsight*",
+      "family": "medimageinsight",
+      "pooled_dim": 1024,
+      "dense_channels": 2048,
+      "dense_grid": [
+        15,
+        15
+      ],
+      "checkpoint": "MedImageInsights/2024.09.27/vision_model/medimageinsigt-v1.0.0.pt",
+      "checkpoint_sha256": "5eeda63bf616a61664bc95b2c09d3b3d7125209e635678bd3f5f324e9bdb1414",
+      "model_config": "MedImageInsights/2024.09.27/config.yaml",
+      "model_config_sha256": "fb1ef53988b0128b4ef5ad829862cc80347cc8f4b009cdc70d8534f797c2851c",
+      "dense_interface": "internal final 15x15 DaViT token grid immediately before average pooling"
+    },
+    "medclip_rn50": {
+      "display_name": "MedCLIP-RN50",
+      "family": "medclip_resnet",
+      "pooled_dim": 512,
+      "dense_channels": 2048,
+      "dense_grid": [
+        7,
+        7
+      ],
+      "checkpoint": "checkpoints/MedCLIP/resnet/pytorch_model.bin",
+      "checkpoint_sha256": "57e0a26011e72954e803d0c4caef2697ff69710b0354969c55af7ba587dec9b0",
+      "dense_interface": "ResNet-50 layer4 feature map"
+    },
+    "medclip_swin": {
+      "display_name": "MedCLIP-Swin",
+      "family": "medclip_vit",
+      "pooled_dim": 512,
+      "dense_channels": 768,
+      "dense_grid": [
+        7,
+        7
+      ],
+      "checkpoint": "checkpoints/MedCLIP/vit/pytorch_model.bin",
+      "checkpoint_sha256": "07bf9f917ccce482ea30ec84e533a30c3ad395c424d3624f6b72edf8484f8126",
+      "model_config": "outputs/model_cache/huggingface/hub/models--microsoft--swin-tiny-patch4-window7-224/snapshots/d00d478bfaf1f417d34a1186673ad4b4be264c51/config.json",
+      "model_config_sha256": "b99b2d1d80b05ff592979047b4a34fb459dd53b82c8036bae1c2a9d1ea2c5ed3",
+      "dense_interface": "final 7x7 Swin hidden-state grid before projection and pooling"
+    },
+    "dax_rn50_va": {
+      "display_name": "DAX-RN50-vA",
+      "family": "dax_resnet50",
+      "pooled_dim": 2048,
+      "dense_channels": 2048,
+      "dense_grid": [
+        7,
+        7
+      ],
+      "checkpoint": "checkpoints/DAX/dax-resnet50-a.pth",
+      "checkpoint_sha256": "2e0fef5f50f2342617713dfc3ec9df835f9493c941a0bc916e631ba4577eb625",
+      "dense_interface": "DAX teacher ResNet-50 layer4 feature map"
+    }
+  }
+}

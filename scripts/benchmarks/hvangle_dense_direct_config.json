@@ -1,0 +1,61 @@
+{
+  "protocol": "hvangle-frozen-dense-direct-v1",
+  "source_root": ".",
+  "angle_manifest": "outputs/benchmarks/controlled_cross_model_v2/medical/hvangle/hvangle_results.json",
+  "dataset_csv": "HVAngleEst/HVAngleEst/datasets.csv",
+  "output": "outputs/benchmarks/controlled_cross_model_v2/medical/hvangle_dense_direct_v1",
+  "seeds": [
+    17,
+    42,
+    73
+  ],
+  "search_space": [
+    {
+      "lr": 0.0001,
+      "weight_decay": 0.0001
+    },
+    {
+      "lr": 0.0003,
+      "weight_decay": 0.0001
+    },
+    {
+      "lr": 0.0001,
+      "weight_decay": 0.001
+    }
+  ],
+  "batch_size": 16,
+  "max_epochs": 60,
+  "patience": 10,
+  "amp": true,
+  "gradient_clip_norm": 1.0,
+  "head": {
+    "canonical_feature_grid": 14,
+    "projection_channels": 256,
+    "decoder_channels": [
+      128,
+      64,
+      32,
+      16
+    ]
+  },
+  "models": {
+    "medimageinsight": {
+      "cache": "outputs/benchmarks/controlled_cross_model_v2/medical/hvangle_spatial/features/medimageinsight"
+    },
+    "biomedclip": {
+      "cache": "outputs/benchmarks/controlled_cross_model_v2/medical/hvangle_spatial/features/biomedclip"
+    },
+    "medclip_rn50": {
+      "cache": "outputs/benchmarks/controlled_cross_model_v2/medical/hvangle_spatial/features/medclip_rn50"
+    },
+    "medclip_swin": {
+      "cache": "outputs/benchmarks/controlled_cross_model_v2/medical/hvangle_spatial/features/medclip_swin"
+    },
+    "dax_rn50_va": {
+      "cache": "outputs/benchmarks/controlled_cross_model_v2/medical/hvangle_spatial/features/dax_rn50_va"
+    },
+    "imagenet_rn50": {
+      "cache": "outputs/benchmarks/controlled_cross_model_v2/medical/hvangle_spatial_imagenet_rn50/features/imagenet_rn50"
+    }
+  }
+}

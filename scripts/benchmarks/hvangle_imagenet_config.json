@@ -1,0 +1,63 @@
+{
+  "protocol_version": "hvangle-frozen-spatial-v2",
+  "angle_result_manifest": "outputs/benchmarks/controlled_cross_model_v2/medical/hvangle/hvangle_results.json",
+  "image_size": 224,
+  "batch_size": 16,
+  "num_workers": 4,
+  "amp": true,
+  "max_epochs": 60,
+  "patience": 10,
+  "seeds": [
+    17,
+    42,
+    73
+  ],
+  "search_space": [
+    {
+      "lr": 0.0001,
+      "weight_decay": 0.0001
+    },
+    {
+      "lr": 0.0003,
+      "weight_decay": 0.0001
+    },
+    {
+      "lr": 0.0001,
+      "weight_decay": 0.001
+    }
+  ],
+  "lines": {
+    "canonical_line_width_px": 3.0,
+    "canonical_feature_grid": 14,
+    "projection_channels": 256,
+    "decoder_channels": [
+      128,
+      64,
+      32,
+      16
+    ],
+    "bce_loss_weight": 0.5,
+    "soft_dice_loss_weight": 0.5,
+    "mask_threshold": 0.5,
+    "axis_probability_power": 4.0,
+    "axis_probability_quantile": 0.95,
+    "axis_fit": "hard_mask_first_with_soft_probability_fallback",
+    "minimum_hard_axis_pixels": 5,
+    "selection_metric": "validation_case_macro_dice"
+  },
+  "models": {
+    "imagenet_rn50": {
+      "display_name": "ImageNet-RN50",
+      "family": "imagenet_resnet50",
+      "pooled_dim": 2048,
+      "dense_channels": 2048,
+      "dense_grid": [
+        7,
+        7
+      ],
+      "checkpoint": "outputs/model_cache/torch/hub/checkpoints/resnet50-0676ba61.pth",
+      "checkpoint_sha256": "0676ba61b6795bbe1773cffd859882e5e297624d384b6993f7c9e683e722fb8a",
+      "dense_interface": "ImageNet ResNet-50 layer4 feature map"
+    }
+  }
+}

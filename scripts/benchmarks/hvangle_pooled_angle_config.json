@@ -1,0 +1,58 @@
+{
+  "angle_result_manifest": "outputs/benchmarks/controlled_cross_model_v2/medical/hvangle/hvangle_results.json",
+  "image_size": 224,
+  "batch_size": 16,
+  "max_epochs": 60,
+  "patience": 10,
+  "seeds": [
+    17,
+    42,
+    73
+  ],
+  "search_space": [
+    {
+      "lr": 0.0001,
+      "weight_decay": 0.0001
+    },
+    {
+      "lr": 0.0003,
+      "weight_decay": 0.0001
+    },
+    {
+      "lr": 0.0001,
+      "weight_decay": 0.001
+    }
+  ],
+  "models": {
+    "biomedclip": {
+      "pooled_dim": 512,
+      "cache": "outputs/benchmarks/controlled_cross_model_v2/medical/hvangle_spatial",
+      "display_name": "BiomedCLIP"
+    },
+    "medimageinsight": {
+      "pooled_dim": 1024,
+      "cache": "outputs/benchmarks/controlled_cross_model_v2/medical/hvangle_spatial",
+      "display_name": "MedImageInsight"
+    },
+    "medclip_rn50": {
+      "pooled_dim": 512,
+      "cache": "outputs/benchmarks/controlled_cross_model_v2/medical/hvangle_spatial",
+      "display_name": "MedCLIP-RN50"
+    },
+    "medclip_swin": {
+      "pooled_dim": 512,
+      "cache": "outputs/benchmarks/controlled_cross_model_v2/medical/hvangle_spatial",
+      "display_name": "MedCLIP-Swin"
+    },
+    "dax_rn50_va": {
+      "pooled_dim": 2048,
+      "cache": "outputs/benchmarks/controlled_cross_model_v2/medical/hvangle_spatial",
+      "display_name": "DAX-RN50-vA"
+    },
+    "imagenet_rn50": {
+      "pooled_dim": 2048,
+      "cache": "outputs/benchmarks/controlled_cross_model_v2/medical/hvangle_spatial_imagenet_rn50",
+      "display_name": "ImageNet-RN50"
+    }
+  }
+}
