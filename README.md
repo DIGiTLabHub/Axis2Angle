@@ -13,7 +13,7 @@ University of Missouri–Kansas City, United States<br>
 
 </div>
 
-<img src="assets/framework.png" width="100%" alt="Axis2Angle experimental design">
+<img src="assets/framework-layout.png" width="100%" alt="Axis2Angle experimental design">
 
 **Figure 1. Recovery, measurement utility, and reference-axis substitution.** The same frozen spatial features feed either a direct angle regressor or a mask decoder. PCA extracts axes from the predicted masks, and the fixed clinical protocol computes HVA and IMA. The three evaluations separately assess axis recovery, measurement accuracy, and the effect of replacing a predicted axis with its reference.
 
