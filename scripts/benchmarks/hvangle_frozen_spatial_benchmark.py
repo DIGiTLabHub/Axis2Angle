@@ -1056,6 +1056,11 @@ def line_loss(
         raise FloatingPointError(
             "line loss received non-finite targets or class weights"
         )
+    # A full 16x224x224 channel exceeds float16's finite sum range.
+    # Keep sigmoid and Dice reductions in float32 while retaining AMP upstream.
+    logits = logits.float()
+    truth = truth.float()
+    positive_weight = positive_weight.float()
     bce = F.binary_cross_entropy_with_logits(
         logits, truth, pos_weight=positive_weight.view(1, 3, 1, 1)
     )

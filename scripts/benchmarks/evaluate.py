@@ -55,6 +55,16 @@ def bootstrap(differences, patients, seed=20260826):
 
 def load_seed_frames(frame, model, ids):
     selected = frame[frame.model_id.eq(model)]
+    prediction_columns = [
+        column
+        for column in selected.columns
+        if column.startswith("predicted_") or column.endswith(("_axis_dx", "_axis_dy"))
+    ]
+    if (
+        prediction_columns
+        and not np.isfinite(selected[prediction_columns].to_numpy(dtype=float)).all()
+    ):
+        raise ValueError(f"{model}: non-finite prediction values")
     if set(selected.seed.unique()) != set(SEEDS):
         raise ValueError(f"{model}: expected exactly seeds {SEEDS}")
     result = []

@@ -1,4 +1,5 @@
 {
+  "protocol_version": "hvangle-frozen-pooled-angle-replay-v1",
   "angle_result_manifest": "outputs/benchmarks/controlled_cross_model_v2/medical/hvangle/hvangle_results.json",
   "image_size": 224,
   "batch_size": 16,

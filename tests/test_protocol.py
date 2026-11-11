@@ -97,3 +97,35 @@ def test_prediction_rows_reject_duplicates():
     )
     with pytest.raises(ValueError, match="identifiers"):
         evaluation.load_seed_frames(frame, "x", ["a"])
+
+
+def test_nonfinite_predictions_are_rejected():
+    import pandas as pd
+
+    frame = pd.DataFrame(
+        dict(
+            model_id=["x"] * 3,
+            seed=[17, 42, 73],
+            identifier=["a"] * 3,
+            predicted_hva_deg=[1.0, float("nan"), 2.0],
+        )
+    )
+    with pytest.raises(ValueError, match="non-finite"):
+        evaluation.load_seed_frames(frame, "x", ["a"])
+
+
+def test_mask_loss_half_precision_matches_float32_without_overflow():
+    logits = torch.zeros(16, 3, 224, 224, dtype=torch.float16, requires_grad=True)
+    truth = torch.zeros(logits.shape, dtype=torch.float32)
+    truth[:, :, 20:30, :] = 1
+    settings = dict(bce_loss_weight=0.5, soft_dice_loss_weight=0.5)
+    weights = torch.ones(3)
+    loss, parts = spatial.line_loss(logits, truth, weights, settings)
+    expected, expected_parts = spatial.line_loss(
+        logits.detach().float(), truth, weights, settings
+    )
+    torch.testing.assert_close(loss, expected)
+    assert parts["soft_dice_loss"] == pytest.approx(expected_parts["soft_dice_loss"])
+    assert 0 < parts["soft_dice_loss"] < 1
+    loss.backward()
+    assert torch.isfinite(logits.grad).all() and logits.grad.abs().sum() > 0

@@ -14,7 +14,7 @@ python scripts/benchmarks/hvangle_frozen_spatial_benchmark.py \
 
 `--models biomedclip` selects one encoder. `--extract-only` generates pooled/dense feature caches without fitting a head. The five medical encoders and ImageNet use separate output roots, matching the downstream configurations.
 
-M-mask uses weighted BCE + soft Dice (0.5 each), selects checkpoints by validation case-macro Dice, and fits PCA directions after mapping masks back to original image coordinates. Mask threshold is 0.5; fewer than five positive pixels triggers the top-5%-probability, fourth-power-weighted PCA fallback. Positive class weights use training masks only.
+M-mask uses weighted BCE + soft Dice (0.5 each), selects checkpoints by validation case-macro Dice, and fits PCA directions after mapping masks back to original image coordinates. Mask threshold is 0.5; fewer than five positive pixels triggers the top-5%-probability, fourth-power-weighted PCA fallback. Positive class weights use training masks only. Mask-loss sigmoid and reductions accumulate in float32 under AMP to prevent float16 overflow at batch size 16. This corrects the historical M-mask training implementation; retraining may differ from the paper checkpoints. The reported result table and evaluation of saved predictions are unchanged.
 
 ## Direct and alternative readouts
 
